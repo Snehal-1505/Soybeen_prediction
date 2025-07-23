@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AgroAI Farmer Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #f4f6f7;
+        }
+
+        .sidebar {
+            width: 220px;
+            background-color: #2e7d32;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 30px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: block;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #1b5e20;
+        }
+
+        .main {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .topbar h1 {
+            color: #2e7d32;
+            font-size: 28px;
+        }
+
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .card h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .logout {
+            margin-top: auto;
+            background-color: #f44336;
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .logout:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>AgroAI</h2>
+        <a href="#">Dashboard</a>
+        <a href="#">Predict Disease</a>
+        <a href="#">Upload Leaf Image</a>
+        <a href="#">View Past Reports</a>
+        <a href="#">My Profile</a>
+        <a href="#">Contact Support</a>
+        <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+    </div>
+
+    <div class="main">
+        <div class="topbar">
+            <h1>Welcome, {{ farmer_name }}</h1>
+            <p>{{ current_date }}</p>
+        </div>
+
+        <div class="card-container">
+            <div class="card">
+                <h3>Diseases Detected</h3>
+                <p>3 in last 7 days</p>
+            </div>
+
+            <div class="card">
+                <h3>Last Prediction</h3>
+                <p>Frogeye Leaf Spot</p>
+            </div>
+
+            <div class="card">
+                <h3>Weather Advisory</h3>
+                <p>Rain expected tomorrow</p>
+            </div>
+
+            <div class="card">
+                <h3>Soil Moisture Tips</h3>
+                <p>Maintain drip irrigation</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
