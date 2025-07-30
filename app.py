@@ -1,9 +1,24 @@
 from flask import Flask, render_template, request, redirect, session, url_for, flash
-import json
+from tensorflow.keras.models import load_model
+import numpy as np
+from PIL import Image
 import os
+import json
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Important for session handling
+app.secret_key = 'your_secret_key'
+
+UPLOAD_FOLDER = 'static/uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Load your trained model
+model = load_model(os.path.join('model', 'cnn_model.h5'))  # Safer cross-platform path
+
+# Load class names dynamically from dataset folder
+dataset_path = 'dataset/archive (3)'
+class_names = sorted([d for d in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, d))])
 
 # Load user data from file
 def load_users():
@@ -57,6 +72,54 @@ def dashboard():
     if 'username' not in session:
         return redirect(url_for('login'))
     return render_template('dashboard.html', username=session['username'])
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+@app.route('/profile')
+def profile():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('profile.html', username=session['username'])
+
+@app.route('/past-report')
+def past_report():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('past_report.html', username=session['username'])
+
+@app.route('/upload_img', methods=['GET', 'POST'])
+def upload_img():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        if 'image' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+
+        file = request.files['image']
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(filepath)
+
+        # Load and preprocess image
+        img = Image.open(filepath).convert('RGB').resize((128, 128))  # Ensure RGB and correct size
+        img_array = np.array(img) / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
+
+        # Predict
+        prediction = model.predict(img_array)
+        predicted_class = class_names[np.argmax(prediction)]
+
+        return render_template('result.html', prediction=predicted_class, image_path=filepath)
+
+    return render_template('upload_img.html')
 
 @app.route('/logout')
 def logout():
