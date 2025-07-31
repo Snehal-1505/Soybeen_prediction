@@ -97,18 +97,15 @@
     </style>
 </head>
 <body>
-</div> <!-- End of .card-container -->
 
     <div class="sidebar">
         <h2>AgroAI</h2>
-        <a href="#">Dashboard</a>
-        <a href="#">Predict Disease</a>
-        <a href="#">Upload Leaf Image</a>
-        <a href="#">View Past Reports</a>
-        <a href="#">My Profile</a>
-        <a href="#">Contact Support</a>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('upload_img') }}">Upload Leaf Image</a>
+        <a href="{{ url_for('past_report') }}">View Past Reports</a>
+        <a href="{{ url_for('profile') }}">My Profile</a>
+        <a href="{{ url_for('contact') }}">Contact Support</a>
         <a href="{{ url_for('logout') }}" class="logout">Logout</a>
-       
     </div>
 
     <div class="main">
