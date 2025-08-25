@@ -1,72 +1,78 @@
-import tensorflow as tf
+import os
+import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
-import os
-import json
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint
 
-# Path to dataset folder (same as used in app.py)
-dataset_path = 'dataset/archive (3)'
+# --- Configuration ---
+IMAGE_SIZE = (150, 150)
+BATCH_SIZE = 32
+EPOCHS = 10
+TRAIN_DIR = 'dataset/train'
+TEST_DIR = 'dataset/test'
+MODEL_SAVE_PATH = 'model.h5'
 
-# Image settings
-img_height, img_width = 128, 128
-batch_size = 32
-
-# Data augmentation and normalization
+# --- Data Augmentation and Preprocessing ---
 train_datagen = ImageDataGenerator(
     rescale=1./255,
-    validation_split=0.2
+    rotation_range=20,
+    zoom_range=0.2,
+    shear_range=0.2,
+    horizontal_flip=True
 )
 
-# Training data generator
-train_gen = train_datagen.flow_from_directory(
-    dataset_path,
-    target_size=(img_height, img_width),
-    batch_size=batch_size,
-    class_mode='categorical',
-    subset='training',
-    shuffle=True
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+train_generator = train_datagen.flow_from_directory(
+    TRAIN_DIR,
+    target_size=IMAGE_SIZE,
+    batch_size=BATCH_SIZE,
+    class_mode='categorical'
 )
 
-# Validation data generator
-val_gen = train_datagen.flow_from_directory(
-    dataset_path,
-    target_size=(img_height, img_width),
-    batch_size=batch_size,
-    class_mode='categorical',
-    subset='validation',
-    shuffle=False
+test_generator = test_datagen.flow_from_directory(
+    TEST_DIR,
+    target_size=IMAGE_SIZE,
+    batch_size=BATCH_SIZE,
+    class_mode='categorical'
 )
 
-# Save class names in the same order as model expects
-class_names = list(train_gen.class_indices.keys())
+num_classes = len(train_generator.class_indices)
+print("Class indices:", train_generator.class_indices)
 
-with open('class_names.json', 'w') as f:
-    json.dump(class_names, f)
-
-# Build the CNN model
+# --- CNN Model Definition ---
 model = Sequential([
-    Conv2D(32, (3, 3), activation='relu', input_shape=(img_height, img_width, 3)),
-    MaxPooling2D(),
+    Conv2D(32, (3, 3), activation='relu', input_shape=(*IMAGE_SIZE, 3)),
+    MaxPooling2D(2, 2),
+    
     Conv2D(64, (3, 3), activation='relu'),
-    MaxPooling2D(),
+    MaxPooling2D(2, 2),
+    
+    Conv2D(128, (3, 3), activation='relu'),
+    MaxPooling2D(2, 2),
+    
     Flatten(),
-    Dense(64, activation='relu'),
-    Dense(train_gen.num_classes, activation='softmax')  # Dynamically based on classes
+    Dense(128, activation='relu'),
+    Dropout(0.5),
+    Dense(num_classes, activation='softmax')  # multi-class
 ])
 
+# --- Compile Model ---
 model.compile(
-    optimizer='adam',
+    optimizer=Adam(),
     loss='categorical_crossentropy',
     metrics=['accuracy']
 )
 
-# Train the model
-model.fit(train_gen, validation_data=val_gen, epochs=10)
+# --- Train Model ---
+model.fit(
+    train_generator,
+    epochs=EPOCHS,
+    validation_data=test_generator
+)
 
-# Ensure model directory exists
-if not os.path.exists('model'):
-    os.makedirs('model')
-
-# Save the model
-model.save('model/cnn_model.h5')
+# --- Save Model ---
+model.save(MODEL_SAVE_PATH)
+print(f"Model saved to {MODEL_SAVE_PATH}")

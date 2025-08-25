@@ -1,141 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>AgroAI Farmer Dashboard</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <title>AgroAI Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", sans-serif;
+    }
 
-        body {
-            display: flex;
-            height: 100vh;
-            background-color: #f4f6f7;
-        }
+    body {
+      display: flex;
+      min-height: 100vh;
+      background: #0f2027;  /* dark green gradient */
+      background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
+      color: #e0f7fa;
+    }
 
-        .sidebar {
-            width: 220px;
-            background-color: #2e7d32;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      padding: 25px 15px;
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid #1b5e20;
+    }
 
-        .sidebar h2 {
-            margin-bottom: 30px;
-            font-size: 24px;
-            text-align: center;
-        }
+    .sidebar h2 {
+      margin-bottom: 30px;
+      color: #81c784;
+      text-align: center;
+    }
 
-        .sidebar a {
-            color: white;
-            text-decoration: none;
-            margin: 15px 0;
-            padding: 10px;
-            border-radius: 5px;
-            display: block;
-            transition: background-color 0.3s;
-        }
+    .sidebar a {
+      text-decoration: none;
+      color: #e0f7fa;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      display: block;
+      transition: 0.3s;
+    }
 
-        .sidebar a:hover {
-            background-color: #1b5e20;
-        }
+    .sidebar a:hover {
+      background: #1b5e20;
+      color: #fff;
+    }
 
-        .main {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
+    /* Main Content */
+    .main {
+      flex: 1;
+      padding: 30px;
+      display: grid;
+      grid-template-columns: 2fr 1.5fr;
+      gap: 25px;
+    }
 
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
+    .welcome {
+      grid-column: 1 / span 2;
+      margin-bottom: 20px;
+    }
 
-        .topbar h1 {
-            color: #2e7d32;
-            font-size: 28px;
-        }
+    .welcome h2 {
+      font-size: 26px;
+      color: #aed581;
+    }
 
-        .card-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-        }
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
 
-        .card {
-            background-color: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(6px);
+      padding: 20px;
+      border-radius: 14px;
+      border-left: 5px solid #81c784;
+      transition: 0.3s;
+    }
 
-        .card h3 {
-            color: #2e7d32;
-            margin-bottom: 10px;
-        }
+    .card:hover {
+      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.15);
+    }
 
-        .logout {
-            margin-top: auto;
-            background-color: #f44336;
-            text-align: center;
-            padding: 10px;
-            border-radius: 5px;
-        }
+    .card h3 {
+      margin-bottom: 10px;
+      color: #c8e6c9;
+    }
 
-        .logout:hover {
-            background-color: #d32f2f;
-        }
-    </style>
+    /* Chart Section */
+    .chart-section {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 20px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+    }
+
+    .chart-section h3 {
+      margin-bottom: 12px;
+      color: #81c784;
+    }
+
+    /* Tips */
+    .tips {
+      display: grid;
+      gap: 15px;
+    }
+
+    .tip-card {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid #1b5e20;
+    }
+
+    .tip-card h4 {
+      margin-bottom: 8px;
+      color: #aed581;
+    }
+
+    /* Footer */
+    footer {
+      grid-column: 1 / span 2;
+      background: linear-gradient(to right, #1b5e20, #388e3c);
+      color: white;
+      text-align: center;
+      padding: 12px;
+      margin-top: 20px;
+      border-radius: 10px;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2>AgroAI</h2>
-        <a href="{{ url_for('dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('upload_img') }}">Upload Leaf Image</a>
-        <a href="{{ url_for('past_report') }}">View Past Reports</a>
-        <a href="{{ url_for('profile') }}">My Profile</a>
-        <a href="{{ url_for('contact') }}">Contact Support</a>
-        <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>🌱 AgroAI</h2>
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('upload_img') }}">Upload</a>
+    <a href="{{ url_for('past_report') }}">Reports</a>
+    <a href="{{ url_for('profile') }}">Profile</a>
+    <a href="{{ url_for('contact') }}">Contact</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="welcome">
+      <h2>Welcome, {{ farmer_name }} 👨‍🌾</h2>
+      <p>📅 {{ current_date }}</p>
     </div>
 
-    <div class="main">
-        <div class="topbar">
-            <h1>Welcome, {{ farmer_name }}</h1>
-            <p>{{ current_date }}</p>
-        </div>
-
-        <div class="card-container">
-            <div class="card">
-                <h3>Diseases Detected</h3>
-                <p>3 in last 7 days</p>
-            </div>
-
-            <div class="card">
-                <h3>Last Prediction</h3>
-                <p>Frogeye Leaf Spot</p>
-            </div>
-
-            <div class="card">
-                <h3>Weather Advisory</h3>
-                <p>Rain expected tomorrow</p>
-            </div>
-
-            <div class="card">
-                <h3>Soil Moisture Tips</h3>
-                <p>Maintain drip irrigation</p>
-            </div>
-        </div>
+    <!-- Cards -->
+    <div class="cards">
+      <div class="card">
+        <h3>🌿 Diseases Detected</h3>
+        <p>5 this week</p>
+      </div>
+      <div class="card">
+        <h3>🧪 Last Prediction</h3>
+        <p>Bacterial Blight</p>
+      </div>
+      <div class="card">
+        <h3>☀ Weather Advisory</h3>
+        <p>Heavy rain tomorrow</p>
+      </div>
+      <div class="card">
+        <h3>💧 Soil Moisture</h3>
+        <p>Low – Irrigation Needed</p>
+      </div>
     </div>
 
+    <!-- Right Column -->
+    <div>
+      <div class="chart-section">
+        <h3>📊 Weekly Trends</h3>
+        <canvas id="diseaseChart"></canvas>
+      </div>
+
+      <div class="tips">
+        <div class="tip-card">
+          <h4>🌾 Crop Tip</h4>
+          <p>Rotate crops to prevent soil depletion.</p>
+        </div>
+        <div class="tip-card">
+          <h4>⚠ Alert</h4>
+          <p>High humidity may cause fungal disease.</p>
+        </div>
+        <div class="tip-card">
+          <h4>📰 News</h4>
+          <p>Govt announces subsidy for organic fertilizers.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      📞 +91-9876543210 | 📩 support@agroai.com <br>
+      © 2025 AgroAI. All Rights Reserved.
+    </footer>
+  </div>
+
+  <!-- Chart Script -->
+  <script>
+    const ctx = document.getElementById('diseaseChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+        datasets: [{
+          label: 'Diseases',
+          data: [2,1,3,2,4,3,5],
+          backgroundColor: '#81c784'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#e0f7fa' } } },
+        scales: {
+          x: { ticks: { color: '#e0f7fa' } },
+          y: { ticks: { color: '#e0f7fa' } }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
